@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Will you be my Valentine?</title>
+  <style>
+    :root{
+      --card-bg: rgba(255,255,255,0.95);
+      --accent: #ff6fa3;
+      --accent-2: #ffb3c6;
+      --muted: #8b6b7b;
+      --shadow: 0 10px 40px rgba(215,80,140,0.12);
+      --radius: 18px;
+      --heart-size: 48px;
+      --panel-width: 320px;
+    }
+
+    html,body{
+      height:100%;
+      margin:0;
+      font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      background: linear-gradient(135deg,#fff1f4 0%, #ffeef6 30%, #fff3ea 100%);
+      color:#5a3744;
+      overflow-x:hidden;
+    }
+
+    .wrap{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      box-sizing:border-box;
+    }
+
+    .card{
+      width:100%;
+      max-width:460px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,250,251,0.98));
+      border-radius:var(--radius);
+      box-shadow: var(--shadow);
+      padding:18px;
+      text-align:center;
+      position:relative;
+      overflow:visible;
+    }
+
+    .photo{
+      width:100%;
+      height:220px;
+      background:linear-gradient(90deg, rgba(255,200,220,0.4), rgba(255,230,240,0.4));
+      border-radius:14px;
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin-bottom:14px;
+    }
+    .photo img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+    h1{ font-size:20px; margin:4px 0; color:#b03a6b; }
+    p.lead{ margin:0 0 12px; font-size:18px; color:#6f3f56; font-weight:600; }
+
+    .countdown{ display:flex; gap:8px; justify-content:center; margin-bottom:12px; flex-wrap:wrap; }
+    .time-box{ background:linear-gradient(180deg,#fff,#fff0); padding:8px 12px; border-radius:12px; min-width:64px; box-shadow:0 6px 18px rgba(200,80,120,0.06); }
+    .time-box .num{ font-weight:700; color:#b93b70; font-size:18px; }
+    .time-box .label{ font-size:11px; color:#9a6a80; }
+
+    .actions{ margin-top:10px; display:flex; gap:12px; justify-content:center; align-items:center; position:relative; height:72px; }
+    .btn{ border:0; padding:12px 18px; border-radius:999px; font-size:16px; cursor:pointer; box-shadow:0 8px 18px rgba(200,80,120,0.08); display:inline-flex; align-items:center; gap:8px; user-select:none; touch-action:manipulation; }
+    .btn-yes{ background: linear-gradient(90deg,var(--accent),var(--accent-2)); color:white; }
+    .btn-no{
+      position:absolute; background:#fff7fb; color:#b44a78; border:1px solid rgba(180,74,120,0.08); min-width:110px; z-index:5;
+      animation: wobble 3s linear infinite; will-change: transform, left, top; pointer-events:auto;
+    }
+    @keyframes wobble{ 0%{ transform: translate(0,0) rotate(-1deg); } 25%{ transform: translate(6px,-3px) rotate(1deg); } 50%{ transform: translate(-4px,4px) rotate(-1deg); } 75%{ transform: translate(6px,2px) rotate(1deg); } 100%{ transform: translate(0,0) rotate(-1deg); } }
+
+    .secret{ margin-top:16px; padding:14px; border-radius:12px; background:linear-gradient(180deg, rgba(255, 245, 249, 0.9), rgba(255, 250, 250, 0.8)); display:none; box-shadow:0 10px 30px rgba(150,60,100,0.04); }
+    .secret h2{ margin:0 0 10px; color:#a03364; font-size:18px; }
+    .secret p{ margin:0 0 12px; color:#6f4456; line-height:1.5; font-size:15px; white-space:pre-line; text-align:left; }
+    .woohoo{ width:120px; border-radius:12px; display:block; margin:8px auto 0; }
+
+    .hearts-layer{ position:fixed; left:0; right:0; top:0; bottom:0; pointer-events:none; overflow:visible; z-index:9999; }
+    .heart{ position:absolute; left:50%; transform:translateX(-50%) scale(0.9); width: var(--heart-size); height: var(--heart-size); display:flex; align-items:center; justify-content:center; border-radius:50%; background:linear-gradient(135deg,#ff7aa5,#ffd0e0); color:white; font-weight:800; box-shadow:0 14px 36px rgba(200,60,110,0.18); animation: floatUp 6s linear forwards; will-change: transform, opacity; font-size:16px; padding:4px; text-align:center; }
+    .heart.emoji{ font-size:20px; width:56px; height:56px; }
+    @keyframes floatUp{ 0%{ transform: translate(var(--sx,0px), 0px) scale(0.9); opacity:0; } 10%{ opacity:1; } 100%{ transform: translate(var(--dx,0px), -110vh) scale(1.05); opacity:0; } }
+
+    .footer{ margin-top:14px; font-size:12px; color:var(--muted); }
+
+    /* Big music panel (improved) */
+    .music-panel{
+      position:fixed;
+      right:14px;
+      bottom:14px;
+      width:var(--panel-width);
+      max-width:92%;
+      background:linear-gradient(180deg, rgba(255,255,255,0.98), #fff7fb);
+      border-radius:14px;
+      padding:12px;
+      box-shadow:0 18px 50px rgba(200,60,110,0.12);
+      z-index:10000;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      align-items:stretch;
+      color:#7b3a5a;
+    }
+    .music-header{ display:flex; justify-content:space-between; align-items:center; gap:8px; }
+    .music-title{ font-weight:700; font-size:14px; color:#b24a77; }
+    .music-controls{ display:flex; gap:8px; justify-content:center; align-items:center; }
+    .control-btn{ background:transparent; border:1px solid rgba(178,74,119,0.12); padding:8px 10px; border-radius:8px; color:#b24a77; cursor:pointer; font-size:14px; }
+    .control-btn.playing{ background:linear-gradient(90deg,var(--accent),var(--accent-2)); color:white; border:0; box-shadow:0 8px 20px rgba(255,120,160,0.12); }
+    .track-list{ display:flex; flex-direction:column; gap:6px; max-height:160px; overflow:auto; padding-right:6px; }
+    .track-item{ padding:8px; border-radius:10px; display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:13px; cursor:pointer; background:transparent; border:1px solid transparent; }
+    .track-item.active{ background:linear-gradient(90deg,#fff0f4,#fff7f9); border:1px solid rgba(178,74,119,0.08); }
+    .small{ font-size:12px; color:#9d6a80; }
+
+    .vol-row{ display:flex; gap:8px; align-items:center; }
+    input[type="range"]{ width:100%; }
+
+    /* cute tap-to-play toast */
+    .open-message{
+      margin-top:6px;
+      background: linear-gradient(90deg, #fff4f8, #fff0f6);
+      color:#7b3a5a;
+      padding:8px 10px;
+      border-radius:10px;
+      font-weight:700;
+      font-size:13px;
+      box-shadow:0 8px 20px rgba(200,70,120,0.08);
+      text-align:center;
+      opacity:0;
+      transform:translateY(10px) scale(0.98);
+      transition: transform .32s cubic-bezier(.2,.9,.3,1), opacity .32s ease;
+      pointer-events:none;
+    }
+    .open-message.show{
+      opacity:1;
+      transform:translateY(0) scale(1);
+    }
+
+    @media (max-width:480px){
+      :root{ --panel-width: 92%; }
+      .actions{ height:84px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card" id="card">
+      <div class="photo" aria-hidden="true">
+        <!-- Place your couple photo next to this file and name it "us.jpg" -->
+        <img src="us.jpg" alt="Us together" id="usPhoto" />
+      </div>
+
+      <h1>Hey Babyboy ❤️</h1>
+      <p class="lead">Will you be my Valentine?</p>
+
+      <div class="countdown" aria-live="polite" id="countdown">
+        <div class="time-box"><div class="num" id="days">--</div><div class="label">Days</div></div>
+        <div class="time-box"><div class="num" id="hours">--</div><div class="label">Hours</div></div>
+        <div class="time-box"><div class="num" id="mins">--</div><div class="label">Minutes</div></div>
+        <div class="time-box"><div class="num" id="secs">--</div><div class="label">Seconds</div></div>
+      </div>
+
+      <div class="actions" id="actions">
+        <button class="btn btn-yes" id="yesBtn">Yes 💕</button>
+        <button class="btn btn-no" id="noBtn" aria-label="No button">No 🙃</button>
+      </div>
+
+      <!-- SECRET MESSAGE (updated per your text) -->
+      <div class="secret" id="secret">
+        <h2 id="celebrateTitle">Yayyy, I knew you’d say yes 😏💖</h2>
+        <p id="secretText">
+Congrats… you’re officially stuck with me forever 🥰✨
+
+You’re not just my boyfriend — you��re my safe place, my favorite person, my 3 a.m. thought, and the smile I didn’t know I needed every day. I love you tons :)
+        </p>
+        <p style="margin-top:10px;font-weight:700; text-align:right;">— Neha 💘</p>
+        <img src="woohoo.gif" alt="Woohoo!" class="woohoo" id="wooGif" />
+      </div>
+
+      <div class="footer">This little page was made to be as cute and silly as our love 💖</div>
+    </div>
+  </div>
+
+  <!-- Two audio elements used for crossfade swapping -->
+  <audio id="audioA" preload="auto"></audio>
+  <audio id="audioB" preload="auto"></audio>
+
+  <div class="hearts-layer" id="heartsLayer" aria-hidden="true"></div>
+
+  <!-- Big music control panel -->
+  <div class="music-panel" id="musicPanel" role="region" aria-label="Music player">
+    <div class="music-header">
+      <div>
+        <div class="music-title">Valentine's Playlist</div>
+        <div class="small" id="nowPlaying">—</div>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <button class="control-btn" id="prevBtn" title="Previous">⟵</button>
+        <button class="control-btn" id="playPauseBtn" title="Play/Pause">Play</button>
+        <button class="control-btn" id="nextBtn" title="Next">⟶</button>
+      </div>
+    </div>
+
+    <div class="music-controls" style="justify-content:space-between; gap:10px;">
+      <div style="flex:1;">
+        <div class="small">Crossfade</div>
+        <input id="crossfadeRange" type="range" min="0" max="4000" step="250" value="1400" />
+      </div>
+      <div style="width:90px;">
+        <div class="small">Volume</div>
+        <div class="vol-row">
+          <input id="volRange" type="range" min="0" max="1" step="0.05" value="0.9" />
+        </div>
+      </div>
+    </div>
+
+    <div class="track-list" id="trackList" aria-label="Playlist"></div>
+
+    <div style="display:flex; gap:8px; margin-top:6px; align-items:center;">
+      <button id="autoplayToggle" class="control-btn">Auto Queue: ON</button>
+      <button id="openHint" class="control-btn">Tap to Play</button>
+    </div>
+
+    <div id="openMessage" class="open-message" aria-live="polite" hidden>
+      🎵 You hit Play — yay! You made my day 💖
+    </div>
+  </div>
+
+  <script>
+    // --- Countdown setup ---
+    function getNextValentines(){
+      const now = new Date();
+      let year = now.getFullYear();
+      const target = new Date(year, 1, 14, 0, 0, 0);
+      if (now > target) target.setFullYear(year + 1);
+      return target;
+    }
+    function pad(n){ return String(n).padStart(2,'0'); }
+    function updateCountdown(){
+      const t = getNextValentines() - new Date();
+      const secs = Math.floor(t/1000) % 60;
+      const mins = Math.floor(t/1000/60) % 60;
+      const hours = Math.floor(t/1000/3600) % 24;
+      const days = Math.floor(t/1000/3600/24);
+      document.getElementById('days').textContent = days;
+      document.getElementById('hours').textContent = pad(hours);
+      document.getElementById('mins').textContent = pad(mins);
+      document.getElementById('secs').textContent = pad(secs);
+    }
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+
+    // --- Playlist data (place these files next to index.html) ---
+    const playlist = [
+      { src: 'findin_her.mp3', title: 'Findin Her' },
+      { src: 'pehle_bhi_main.mp3', title: 'Pehle Bhi Main' }
+    ];
+
+    // --- Audio crossfade players ---
+    const audioA = document.getElementById('audioA');
+    const audioB = document.getElementById('audioB');
+    let active = audioA;
+    let standby = audioB;
+    let activeIndex = 0;
+    let isPlaying = false;
+    let autoplayQueue = true;
+
+    // UI elements
+    const nowPlaying = document.getElementById('nowPlaying');
+    const trackListEl = document.getElementById('trackList');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const volRange = document.getElementById('volRange');
+    const crossfadeRange = document.getElementById('crossfadeRange');
+    const autoplayToggle = document.getElementById('autoplayToggle');
+    const openHint = document.getElementById('openHint');
+    const openMessage = document.getElementById('openMessage');
+
+    function renderTrackList(){
+      trackListEl.innerHTML = '';
+      playlist.forEach((t,i)=>{
+        const item = document.createElement('div');
+        item.className = 'track-item' + (i === activeIndex ? ' active' : '');
+        item.innerHTML = `<div>${i+1}. ${t.title}</div><div class="small">${i === activeIndex ? 'Playing' : ''}</div>`;
+        item.addEventListener('click', ()=> { queueAndPlay(i); });
+        trackListEl.appendChild(item);
+      });
+      nowPlaying.textContent = playlist[activeIndex].title;
+    }
+
+    function setVolume(v){
+      active.volume = v;
+      standby.volume = 0;
+    }
+    volRange.addEventListener('input', ()=> {
+      const v = parseFloat(volRange.value);
+      setVolume(v);
+    });
+
+    function loadTo(element, index){
+      element.src = playlist[index].src;
+      element.load();
+    }
+
+    function crossfadeTo(index, fadeMs = 1400){
+      if (index < 0 || index >= playlist.length) return;
+      loadTo(standby, index);
+      standby.currentTime = 0;
+      standby.volume = 0;
+      const targetVol = parseFloat(volRange.value || 0.9);
+      const stepMs = 60;
+      const steps = Math.max(1, Math.round(fadeMs / stepMs));
+      let curStep = 0;
+      const playPromise = standby.play();
+      if (playPromise && playPromise.catch) {
+        playPromise.catch(()=>{});
+      }
+      const fadeTimer = setInterval(()=> {
+        curStep++;
+        const t = curStep / steps;
+        const standbyVol = Math.min(targetVol, t * targetVol);
+        const activeVol = Math.max(0, (1 - t) * targetVol);
+        try { standby.volume = standbyVol; } catch(e){}
+        try { active.volume = activeVol; } catch(e){}
+        if (curStep >= steps) {
+          clearInterval(fadeTimer);
+          try { active.pause(); } catch(e){}
+          const tmp = active; active = standby; standby = tmp;
+          activeIndex = index;
+          isPlaying = true;
+          renderTrackList();
+          active.onended = ()=> {
+            if (autoplayQueue) {
+              const next = (activeIndex + 1) % playlist.length;
+              crossfadeTo(next, parseInt(crossfadeRange.value, 10));
+            } else {
+              isPlaying = false;
+              playPauseBtn.textContent = 'Play';
+            }
+          };
+        }
+      }, stepMs);
+    }
+
+    function queueAndPlay(index){
+      if (index === activeIndex && !isPlaying){ play(); return; }
+      const fadeMs = parseInt(crossfadeRange.value || 1400, 10);
+      crossfadeTo(index, fadeMs);
+      playPauseBtn.textContent = 'Pause';
+    }
+
+    function play(){
+      if (!active.src) loadTo(active, activeIndex);
+      const p = active.play();
+      if (p && p.catch) p.catch(()=>{});
+      isPlaying = true;
+      playPauseBtn.textContent = 'Pause';
+    }
+    function pause(){
+      try { active.pause(); } catch(e){}
+      isPlaying = false;
+      playPauseBtn.textContent = 'Play';
+    }
+
+    playPauseBtn.addEventListener('click', ()=> {
+      if (!isPlaying) {
+        if (!active.src) loadTo(active, activeIndex);
+        const p = active.play();
+        if (p && p.catch) p.catch(()=>{});
+        isPlaying = true;
+        playPauseBtn.textContent = 'Pause';
+      } else {
+        pause();
+      }
+    });
+
+    prevBtn.addEventListener('click', ()=> { const prev = (activeIndex - 1 + playlist.length) % playlist.length; queueAndPlay(prev); });
+    nextBtn.addEventListener('click', ()=> { const nxt = (activeIndex + 1) % playlist.length; queueAndPlay(nxt); });
+
+    autoplayToggle.addEventListener('click', ()=> {
+      autoplayQueue = !autoplayQueue;
+      autoplayToggle.textContent = 'Auto Queue: ' + (autoplayQueue ? 'ON' : 'OFF');
+    });
+
+    openHint.addEventListener('click', ()=> {
+      try {
+        if (!active.src) loadTo(active, activeIndex);
+        active.play().then(()=> {
+          isPlaying = true;
+          playPauseBtn.textContent = 'Pause';
+        }).catch(()=> { /* still blocked */ });
+      } catch(e){}
+      showOpenMessage("🎵 You hit Play — yay! You made my day 💖");
+    });
+
+    function showOpenMessage(text = "🎵 You hit Play — yay! You made my day 💖"){
+      if(!openMessage) return;
+      openMessage.textContent = text;
+      openMessage.hidden = false;
+      requestAnimationFrame(()=> openMessage.classList.add('show'));
+      try { if (navigator.vibrate) navigator.vibrate(40); } catch(e){}
+      setTimeout(()=>{ openMessage.classList.remove('show'); setTimeout(()=> openMessage.hidden = true, 360); }, 3800);
+    }
+
+    window.addEventListener('load', ()=> {
+      renderTrackList();
+      loadTo(active, activeIndex);
+      const tryAuto = active.play();
+      if (tryAuto && tryAuto.catch){
+        tryAuto.catch(()=> { playPauseBtn.textContent = 'Play'; });
+      } else {
+        isPlaying = true;
+        playPauseBtn.textContent = 'Pause';
+      }
+      setTimeout(()=> {
+        const initialVol = parseFloat(volRange.value);
+        try { active.volume = initialVol; standby.volume = 0; } catch(e){}
+      }, 150);
+    });
+
+    volRange.addEventListener('input', ()=> {
+      const v = parseFloat(volRange.value);
+      try { active.volume = v; } catch(e){}
+    });
+
+    // --- Evasive "No" button behavior ---
+    const noBtn = document.getElementById('noBtn');
+    const actions = document.getElementById('actions');
+    let noActive = true;
+    let noInterval = null;
+    function placeNoAt(xPct = 70, yPct = 50){
+      const containerRect = actions.getBoundingClientRect();
+      const w = containerRect.width;
+      const h = containerRect.height;
+      const left = Math.max(6, Math.min(w - noBtn.offsetWidth - 6, Math.round(w * xPct / 100)));
+      const top = Math.max(0, Math.min(h - noBtn.offsetHeight, Math.round(h * yPct / 100)));
+      noBtn.style.left = left + 'px';
+      noBtn.style.top = top + 'px';
+    }
+    function jumpNoRandom(big=false){
+      if (!noActive) return;
+      const xPct = Math.random() * (big ? 95 : 85);
+      const yPct = Math.random() * (big ? 85 : 70);
+      noBtn.style.transition = 'left 0.26s ease, top 0.26s ease';
+      placeNoAt(xPct, yPct);
+      setTimeout(()=> noBtn.style.transition = '', 280);
+    }
+    function startNoJitter(){
+      if (noInterval) clearInterval(noInterval);
+      noInterval = setInterval(()=>{
+        if (!noActive) return;
+        const dx = (Math.random()*18 - 9);
+        const dy = (Math.random()*12 - 6);
+        noBtn.style.transform = `translate(${dx}px, ${dy}px)`;
+      }, 400);
+    }
+    function setupNoEvasion(){
+      const evade = (e)=>{
+        e.preventDefault(); e.stopPropagation();
+        jumpNoRandom(true);
+      };
+      noBtn.addEventListener('mouseenter', evade);
+      noBtn.addEventListener('pointerenter', evade);
+      noBtn.addEventListener('touchstart', (ev)=> { evade(ev); }, {passive:false});
+      noBtn.addEventListener('click', (ev)=> { ev.preventDefault(); ev.stopPropagation(); jumpNoRandom(true); return false; });
+    }
+    function initNoButton(){ placeNoAt(68, 18); startNoJitter(); setupNoEvasion(); setInterval(()=> { if (!noActive) return; if (Math.random() > 0.45) jumpNoRandom(false); }, 720); }
+    window.addEventListener('load', ()=> { setTimeout(initNoButton, 120); setTimeout(initNoButton, 600); });
+
+    // --- Yes button behavior and hearts (message updated to your text) ---
+    const yesBtn = document.getElementById('yesBtn');
+    const secret = document.getElementById('secret');
+    const heartsLayer = document.getElementById('heartsLayer');
+    const wooGif = document.getElementById('wooGif');
+    wooGif.style.display = 'none';
+
+    function stopNoBehaviorPermanently(){
+      noActive = false;
+      try { noBtn.style.display = 'none'; } catch(e){}
+    }
+    function doVibrate(){
+      try{ if (navigator.vibrate) navigator.vibrate([150,60,150,60,200]); } catch(e){}
+    }
+
+    function startFloatingHearts(){
+      const message = ['I',' ','L','O','V','E',' ','Y','O','U',' ','P','R','A','T','H','A','M'];
+      const emojiPool = ['💖','💘','💕','💞'];
+      let idx = 0;
+      function spawnHeartForChar(ch, index){
+        const heart = document.createElement('div');
+        heart.className = 'heart';
+        if (ch === ' '){
+          const emoji = emojiPool[Math.floor(Math.random()*emojiPool.length)];
+          heart.textContent = emoji;
+          heart.classList.add('emoji');
+        } else {
+          if (Math.random() < 0.18) {
+            const emoji = emojiPool[Math.floor(Math.random()*emojiPool.length)];
+            heart.textContent = ch + emoji;
+          } else {
+            heart.textContent = ch;
+          }
+        }
+        const startLeft = Math.random() * 90 + 5;
+        const px = (startLeft / 100) * window.innerWidth;
+        const startTop = window.innerHeight + 40 + Math.random()*40;
+        heart.style.left = px + 'px';
+        heart.style.top = startTop + 'px';
+        const dx = (Math.random()*220 - 110) + (index - message.length/2) * 12;
+        heart.style.setProperty('--dx', dx + 'px');
+        heart.style.setProperty('--sx', '0px');
+        const dur = 5400 + Math.round(Math.random()*2200);
+        heart.style.animationDuration = dur + 'ms';
+        heart.style.opacity = 0;
+        heartsLayer.appendChild(heart);
+        setTimeout(()=> { heart.remove(); }, dur + 250);
+      }
+      const seqInterval = 360;
+      const sequenceTimer = setInterval(()=>{
+        if (idx >= message.length){
+          clearInterval(sequenceTimer);
+          for (let i=0;i<8;i++){ setTimeout(()=> spawnHeartForChar(' ', i+100), i*180); }
+          return;
+        }
+        spawnHeartForChar(message[idx], idx);
+        idx++;
+      }, seqInterval);
+    }
+
+    yesBtn.addEventListener('click', (e)=>{
+      doVibrate();
+      stopNoBehaviorPermanently();
+      // reveal the updated secret message (already set in HTML)
+      secret.style.display = 'block';
+      wooGif.style.display = 'block';
+      // ensure audio plays (user gesture helps)
+      try { active.play().catch(()=>{}); } catch(e){}
+      startFloatingHearts();
+      for (let i = 0; i < 6; i++){ setTimeout(()=> startFloatingHearts(), 500 + i*300); }
+      setTimeout(()=> { secret.scrollIntoView({behavior:'smooth', block:'center'}); }, 260);
+    });
+
+    noBtn.addEventListener('focus', ()=> { noBtn.blur(); jumpNoRandom(true); });
+
+    actions.addEventListener('touchstart', ()=> {
+      try { active.play().catch(()=>{}); } catch(e){}
+    }, {passive:true});
+
+    // small polish
+    document.getElementById('usPhoto').addEventListener('contextmenu', (e)=> e.preventDefault());
+    yesBtn.addEventListener('keydown', (e)=> { if (e.key === 'Enter' || e.key === ' ') yesBtn.click(); });
+
+    // initial render
+    renderTrackList();
+    console.log('Valentine page ready — secret message updated.');
+  </script>
+</body>
+</html>
